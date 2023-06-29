@@ -1,3 +1,5 @@
+
+#Testar se realizou a alteração
 rm(list=ls())
 library(INLA)
 library(spatstat)
