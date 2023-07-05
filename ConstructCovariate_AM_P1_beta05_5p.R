@@ -8,9 +8,10 @@ library(inlabru)
 #library(sp)
 library(sf)
 
+#Experimentar
 
 #Caso beta=2 com 
-#5% k vizinhos mais prÃ³ximos
+#5% k vizinhos mais prÃƒÂ³ximos
 #n=100
 
 seed <- 217
@@ -52,8 +53,8 @@ spde_matern <- inla.spde2.matern(mesh=mesh, B.tau=cbind(log(tau0), -1, +1),
 
   
 Q <- inla.spde.precision(spde=spde_matern, theta=c(0,0))
-#u <- inla.qsample(n=1, Q=Q, mu=rep(4,nrow(Q)), seed=seed) #mÃ©dia 4; poderia ter sido acrescentada mais tarde 
-u <- inla.qsample(n=1, Q=Q, mu=rep(4,nrow(Q))) #mÃ©dia 4; poderia ter sido acrescentada mais tarde 
+#u <- inla.qsample(n=1, Q=Q, mu=rep(4,nrow(Q)), seed=seed) #mÃƒÂ©dia 4; poderia ter sido acrescentada mais tarde 
+u <- inla.qsample(n=1, Q=Q, mu=rep(4,nrow(Q))) #mÃƒÂ©dia 4; poderia ter sido acrescentada mais tarde 
   
 ### simulation grid
   
@@ -68,7 +69,7 @@ u_ver <- as.vector(inla.spde.make.A(mesh=mesh, loc=grid)%*%as.vector(u))
   
 ### simulating a gaussian response variable
 
-#intercept <- 4   #caso quisesse acrescentar a mÃ©dia mu=4 aqui
+#intercept <- 4   #caso quisesse acrescentar a mÃƒÂ©dia mu=4 aqui
 #predictor <- intercept + u_ver 
 predictor <- u_ver 
 prec.gaussian <- (0.1)^(-1)  #nugget precision
@@ -81,7 +82,7 @@ DFSim <- data.frame(x=grid[,1], y=grid[,2], ysim=ysim)
 sampData <- DFSim[sample(1:nrow(DFSim), size=n, prob = exp(beta*u_ver)),]  
 
 
-#Vou usar a mesh que jÃ¡ tenho, Ã© parecida com a que usavamos nas versoes anteriores deste trabalho com o RandomFields
+#Vou usar a mesh que jÃƒÂ¡ tenho, ÃƒÂ© parecida com a que usavamos nas versoes anteriores deste trabalho com o RandomFields
 # ##Mesh
 # fronteira<- cbind(c(0, 1, 1, 0, 0), c(0, 0, 1, 1, 0))
 # mesh <- inla.mesh.2d(loc.domain = fronteira, max.edge = c(0.092, 0.2))
@@ -105,7 +106,7 @@ x.aux <- st_sf(st_sfc(st_polygon(list(x))))
 #library(distances)
 dados<-sampData
 
-#Decisão Final: considerar a densidade dos pontos
+#DecisÃ£o Final: considerar a densidade dos pontos
 area<-st_area(x.aux)
 area
 lado.grid<-sqrt(area/n)
@@ -121,31 +122,31 @@ for (lg in 1:length(lado.grid)){
   #grid
   grid <- st_make_grid(x.aux, cellsize = c(lado.grid[lg],lado.grid[lg]))
   
-  #Determinação de quais os quadradinhos dentro do poligono: são os que têm todos os pontos de
+  #DeterminaÃ§Ã£o de quais os quadradinhos dentro do poligono: sÃ£o os que tÃªm todos os pontos de
   #grid[[i]] dentro da fronteira.pt
   #library(mgcv)
   grid.in<-NULL
   for (i in 1:length(grid)){
-    aux<-in.out(as.matrix(x),as.matrix(grid[[i]])) #se algum ponto de grid[[i]] estiver dentro da fronteira virá true(=1)
-    if(sum(aux)==5) #5-1 vértices do quadrado início para fechar
+    aux<-in.out(as.matrix(x),as.matrix(grid[[i]])) #se algum ponto de grid[[i]] estiver dentro da fronteira virÃ¡ true(=1)
+    if(sum(aux)==5) #5-1 vÃ©rtices do quadrado inÃ­cio para fechar
     {grid.in[i]<-"dentro"}
     else{
       if(sum(aux)==0) grid.in[i]<-"fora" else grid.in[i]<-"borda"}
   } #end for i
   
-  #Criação da data.frame onde colocar a info para o teste
+  #CriaÃ§Ã£o da data.frame onde colocar a info para o teste
   base.teste<-data.frame(ID=1:length(grid.in),pos.grelha=grid.in,n.pontos=NA,media.y=NA)
   
-  #Areas da grid que estão totalmente dentro da fronteira
+  #Areas da grid que estÃ£o totalmente dentro da fronteira
   
   
   for (i in 1:length(grid)){
     if (base.teste$pos.grelha[i]=="dentro" | base.teste$pos.grelha[i]=="borda"){
-      aux<-in.out(as.matrix(grid[[i]]),as.matrix(data.frame(dados$x,dados$y))) #ver que dados então dentro do quadradinho da grelha
+      aux<-in.out(as.matrix(grid[[i]]),as.matrix(data.frame(dados$x,dados$y))) #ver que dados entÃ£o dentro do quadradinho da grelha
       base.teste$n.pontos[i]<-sum(aux)
       if (sum(aux)!=0) base.teste$media.y[i]<-mean(dados$ysim[aux],na.rm=T)
       else base.teste$n.pontos[i]<-NA
-      # cat(paste("Iteração:",i,"\n"))
+      # cat(paste("IteraÃ§Ã£o:",i,"\n"))
     }
   }
   base.teste<-base.teste[base.teste$pos.grelha=="dentro"|base.teste$pos.grelha=="borda",]
@@ -164,13 +165,13 @@ RES
 
 
 
-####Análise da grelha####
+####AnÃ¡lise da grelha####
 
-#Determinar número de quadrados da grelha
+#Determinar nÃºmero de quadrados da grelha
 length(base.teste$n.pontos)
-#Determinar número de obs
+#Determinar nÃºmero de obs
 sum(base.teste$n.pontos, na.rm=T)
-#Determinar número médio de observações por quadrado
+#Determinar nÃºmero mÃ©dio de observaÃ§Ãµes por quadrado
 mean(base.teste$n.pontos,na.rm=T)
 hist(base.teste$n.pontos)
 
@@ -182,8 +183,8 @@ write.table(matrix(RES,ncol=3), file="RES_nocovariate_beta05_250obs_5p_mesh1.txt
 
 #base.teste
 
-#Constructed covariate nas observações
-#Distância aos k vizinhos mais próximos 5% dos vizinhos
+#Constructed covariate nas observaÃ§Ãµes
+#DistÃ¢ncia aos k vizinhos mais prÃ³ximos 5% dos vizinhos
 
 x<-sampData[,1]
 y<-sampData[,2]
@@ -271,31 +272,31 @@ for (lg in 1:length(lado.grid)){
   #grid
   grid <- st_make_grid(x.aux, cellsize = c(lado.grid[lg],lado.grid[lg]))
   
-  #Determinação de quais os quadradinhos dentro do poligono: são os que têm todos os pontos de
+  #DeterminaÃ§Ã£o de quais os quadradinhos dentro do poligono: sÃ£o os que tÃªm todos os pontos de
   #grid[[i]] dentro da fronteira.pt
   #library(mgcv)
   grid.in<-NULL
   for (i in 1:length(grid)){
-    aux<-in.out(as.matrix(x),as.matrix(grid[[i]])) #se algum ponto de grid[[i]] estiver dentro da fronteira virá true(=1)
-    if(sum(aux)==5) #5-1 vértices do quadrado início para fechar
+    aux<-in.out(as.matrix(x),as.matrix(grid[[i]])) #se algum ponto de grid[[i]] estiver dentro da fronteira virÃ¡ true(=1)
+    if(sum(aux)==5) #5-1 vÃ©rtices do quadrado inÃ­cio para fechar
     {grid.in[i]<-"dentro"}
     else{
       if(sum(aux)==0) grid.in[i]<-"fora" else grid.in[i]<-"borda"}
   } #end for i
   
-  #Criação da data.frame onde colocar a info para o teste
+  #CriaÃ§Ã£o da data.frame onde colocar a info para o teste
   base.teste<-data.frame(ID=1:length(grid.in),pos.grelha=grid.in,n.pontos=NA,media.y=NA)
   
-  #Areas da grid que estão totalmente dentro da fronteira
+  #Areas da grid que estÃ£o totalmente dentro da fronteira
   
   
   for (i in 1:length(grid)){
     if (base.teste$pos.grelha[i]=="dentro" | base.teste$pos.grelha[i]=="borda"){
-      aux<-in.out(as.matrix(grid[[i]]),as.matrix(data.frame(dados2$x,dados2$y))) #ver que dados então dentro do quadradinho da grelha
+      aux<-in.out(as.matrix(grid[[i]]),as.matrix(data.frame(dados2$x,dados2$y))) #ver que dados entÃ£o dentro do quadradinho da grelha
       base.teste$n.pontos[i]<-sum(aux)
       if (sum(aux)!=0) base.teste$media.y[i]<-mean(dados2$data[aux],na.rm=T)
       else base.teste$n.pontos[i]<-NA
-      # cat(paste("Iteração:",i,"\n"))
+      # cat(paste("IteraÃ§Ã£o:",i,"\n"))
     }
   }
   
